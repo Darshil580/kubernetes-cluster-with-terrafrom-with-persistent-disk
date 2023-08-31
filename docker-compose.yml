@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  server1:
+    image: darshil599/assignment-1:latest
+    container_name: server1
+    ports:
+      - "6000:6000"
+    networks:
+      - custom-network
+
+  server2:
+    image: darshil599/assignment-1:app2
+    container_name: server2
+    ports:
+      - "3001:3001"
+    networks:
+      - custom-network
+    volumes:
+      - ./:/src/app/data
+
+networks:
+  custom-network:
+    name: new-network
+    driver: bridge
+    

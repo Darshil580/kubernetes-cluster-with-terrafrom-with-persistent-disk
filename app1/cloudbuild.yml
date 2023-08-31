@@ -1,0 +1,30 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/csci-5409-advanced-cloud/darshilp599-ks8-1/darshil-ks8-app1:latest'
+      - '.'
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/csci-5409-advanced-cloud/darshilp599-ks8-1/darshil-ks8-app1:latest'
+  # Deploy the application to GKE
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'container'
+      - 'clusters'
+      - 'get-credentials'
+      - 'darshil-gke-cluster'
+      - '--region=us-central1' 
+      - '--project=csci-5409-advanced-cloud'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    env:
+      - CLOUDSDK_COMPUTE_ZONE=us-central1
+      - CLOUDSDK_CONTAINER_CLUSTER=darshil-gke-cluster
+    args:
+      - 'apply'
+      - '-f'
+      - 'deployment.yml'  # Path to your Kubernetes deployment configuration file
+options:
+  logging: CLOUD_LOGGING_ONLY

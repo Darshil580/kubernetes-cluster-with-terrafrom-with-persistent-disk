@@ -1,0 +1,97 @@
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: my-pv
+# spec:
+#   capacity:
+#     storage: 10Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Retain
+#   storageClassName: standard
+#   gcePersistentDisk:
+#     pdName: darshil-pv-storage
+#     fsType: ext4
+
+
+# ---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      app: my-app
+
+# ---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  labels:
+    app: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: app1
+          image: us-central1-docker.pkg.dev/csci-5409-advanced-cloud/darshilp599-ks8-1/darshil-ks8-app1:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: darshil-pv-dir
+              mountPath: /darshil_pv_dir
+        - name: app2
+          image: us-central1-docker.pkg.dev/csci-5409-advanced-cloud/darshilp599-ks8-2/darshil-ks8-app2:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: darshil-pv-dir
+              mountPath: /darshil_pv_dir
+      volumes:
+        - name: darshil-pv-dir
+          persistentVolumeClaim:
+            claimName: my-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: my-app
+  ports:
+    - name: app1
+      protocol: TCP
+      port: 6000
+      targetPort: 6000
+
+    - name: app2
+      protocol: TCP
+      port: 3001
+      targetPort: 3001
+
+
+      
