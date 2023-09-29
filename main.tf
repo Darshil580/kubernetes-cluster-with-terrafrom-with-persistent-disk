@@ -1,21 +1,54 @@
-# Copyright 2019 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 
-terraform {
-  backend "gcs" {
-    bucket = "PROJECT_ID-tfstate"
-    prefix = "env/dev"
-  }
+provider "google" {
+    project = "csci-5409-advanced-cloud"
+    region  = "us-central1"
+    zone    = "us-central1-a"
+    # version = "3.68.0"
 }
+
+
+# Create the Persistent Disk for Persistent Volume
+# resource "google_compute_disk" "my_persistent_volume" {
+#     name  = "darshil-pv-storage"
+#     size  = 1
+#     type  = "pd-standard"
+#     zone  = "us-central1-a"
+# }
+
+
+
+resource "google_container_cluster" "primary" {
+
+    name               = "darshil-gke-cluster"
+    location           = "us-central1"
+    # remove_default_node_pool = true
+    initial_node_count = 1
+    node_locations     = ["us-central1-a"]
+    # min_master_version = "1.20.0"
+
+    node_config {
+
+        image_type   = "COS_CONTAINERD"
+        # machine_type = "e2-medium"
+        disk_type    = "pd-standard"
+        # disk_size_gb = 10
+
+        # Add Persistent Volume for root path
+        kubelet_config {
+
+            cpu_manager_policy = "none"
+        }
+    }
+
+    network    = "default"
+    subnetwork = "default"
+}
+
+
+
+# Output the cluster name
+# output "cluster_name" {
+    # value = google_container_cluster.primary.name
+# }
+
